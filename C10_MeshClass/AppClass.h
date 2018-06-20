@@ -17,7 +17,10 @@ class Application
 	MyMesh* m_pMesh = nullptr;
 	MyMesh* m_pMesh1 = nullptr;
 
-	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	//need a vector to store the position of all of the different cubes
+	std::vector<glm::vec3> posVec;
+
+	String m_sProgrammer = "Zachary Winnewisser - zmw7710@rit.edu";
 private:
 	static ImGuiObject gui; //GUI object
 
