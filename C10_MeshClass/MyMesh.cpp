@@ -1,4 +1,6 @@
 #include "MyMesh.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 void MyMesh::Init(void)
 {
 	m_bBinded = false;
@@ -276,11 +278,30 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	Mesh* pMesh = new Mesh();
-	pMesh->GenerateCone(a_fRadius, a_fHeight, a_nSubdivisions, a_v3Color);
-	m_lVertexPos = pMesh->GetVertexList();
-	m_uVertexCount = m_lVertexPos.size();
-	SafeDelete(pMesh);
+	std::vector<vector3> tempVert;
+	for (float i = 0; i <= a_nSubdivisions; ++i)
+	{
+		//do math for the points in a circle
+		double angle = (2 * M_PI) * i / a_nSubdivisions;
+		double s = sin(angle);
+		double c = cos(angle);
+
+		//calculates points in a circle and pushes back to tempVert
+		tempVert.push_back(glm::vec3((a_fRadius * c), 0.0f, (a_fRadius * s)));
+
+	}
+	//adds tris to create sides of cone
+	for (float i = 0; i < a_nSubdivisions; ++i)
+	{
+		//second variable in AddTri is a vec3 that adds point for all of the other points to connect to.
+		AddTri(tempVert[i], glm::vec3(0.0f, a_fHeight, 0.0f), tempVert[i + 1]);
+	}
+
+	//creates bottom
+	for (float i = 0; i < a_nSubdivisions; ++i)
+	{
+		AddTri(tempVert[i], tempVert[i + 1], glm::vec3(0, 0, 0));
+	}
 	// -------------------------------
 
 	// Adding information about color
