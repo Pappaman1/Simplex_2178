@@ -16,9 +16,12 @@ class Application
 {
 	matrix4 m_m4Model = IDENTITY_M4;
 	quaternion m_qOrientation;
+	Simplex::Model* m_pModel = nullptr; //Model to display
+	vector3 m_v3Orientation;
 	vector3 m_v3Rotation;
 	MyMesh* m_pMesh = nullptr;
-	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	String m_sProgrammer = "Zach Winnewisser - zmw7710s@rit.edu";
+
 
 private:
 	static ImGuiObject gui; //GUI object
