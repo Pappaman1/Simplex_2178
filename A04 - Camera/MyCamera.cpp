@@ -115,7 +115,7 @@ void Simplex::MyCamera::MoveSideways(float a_fDistance)
 {
 	//printf(" %f %f %f ", m_v3Position.x, m_v3Position.y, m_v3Position.z);
 	vector3 forward = glm::normalize(m_v3Target - m_v3Position);
-	vector3 up = glm::normalize(m_v3Above);
+	vector3 up = glm::normalize(m_v3Above - m_v3Position);
 	vector3 right = glm::normalize(glm::cross(forward, up));
 	m_v3Position += right * a_fDistance;
 	m_v3Target += right * a_fDistance;
