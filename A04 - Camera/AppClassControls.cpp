@@ -1,6 +1,10 @@
 #include "AppClass.h"
 using namespace Simplex;
 //Mouse
+
+float fAngleX = 0.0f;
+float fAngleY = 0.0f;
+float fDeltaMouse = 0.0f;
 void Application::ProcessMouseMovement(sf::Event a_event)
 {
 	//get global mouse position
@@ -345,30 +349,80 @@ void Application::CameraRotation(float a_fSpeed)
 
 	//Calculate the difference in view with the angle
 	float fAngleX = 0.0f;
-	float fAngleY = 0.0f;
+	static float fAngleYaw = 0.0f;
 	float fDeltaMouse = 0.0f;
+	vector3 forward = glm::normalize(m_pCamera->GetTarget() - m_pCamera->GetPosition());
+	vector3 up = glm::normalize(m_pCamera->GetUp());
+	vector3 right = glm::normalize(glm::cross(forward, up));
+	vector3 target = m_pCamera->GetTarget();
+
 	if (MouseX < CenterX)
 	{
 		fDeltaMouse = static_cast<float>(CenterX - MouseX);
-		fAngleY += fDeltaMouse * a_fSpeed;
+		fAngleYaw += fDeltaMouse * a_fSpeed;
+		quaternion yRot = glm::angleAxis(-0.1f, up);
+		quaternion targetRot(0, target.x, target.y, target.z);
+		quaternion result = yRot * targetRot * glm::conjugate(yRot);
+		m_pCamera->SetTarget(vector3(result.x, result.y, result.z));
+		m_pCamera->CalculateProjectionMatrix();
 	}
 	else if (MouseX > CenterX)
 	{
 		fDeltaMouse = static_cast<float>(MouseX - CenterX);
-		fAngleY -= fDeltaMouse * a_fSpeed;
+		fAngleYaw -= fDeltaMouse * a_fSpeed;
+		quaternion yRot = glm::angleAxis(0.1f, up);
+		quaternion targetRot(0, target.x, target.y, target.z);
+		quaternion result = yRot * targetRot * glm::conjugate(yRot);
+		m_pCamera->SetTarget(vector3(result.x, result.y, result.z));
+		printf(" %f %f %f ", up.x, up.y, up.z);
+		printf(" %f %f %f ", target.x, target.y, target.z);
+		printf(" %f %f %f \n", right.x, right.y, right.z);
+		m_pCamera->CalculateProjectionMatrix();
 	}
 
+	forward = glm::normalize(m_pCamera->GetTarget() - m_pCamera->GetPosition());
+	up = glm::normalize(m_pCamera->GetUp());
+	right = glm::normalize(glm::cross(forward, up));
+	target = m_pCamera->GetTarget();
+	
 	if (MouseY < CenterY)
 	{
+		
+
 		fDeltaMouse = static_cast<float>(CenterY - MouseY);
-		fAngleX -= fDeltaMouse * a_fSpeed;
+		fAngleX += fDeltaMouse * a_fSpeed;
+		quaternion yRot = glm::angleAxis(-0.1f,right);
+		quaternion targetRot(0,target.x,target.y,target.z);
+		quaternion result = yRot * targetRot * glm::conjugate(yRot);
+		m_pCamera->SetTarget(vector3(result.x,result.y,result.z));
+
+		quaternion upRot(0,up.x,up.y,up.z);
+		quaternion result2 = yRot * upRot * glm::conjugate(yRot);
+		m_pCamera->SetUp(glm::normalize(vector3(result2.x, result2.y, result2.z)));
+		//printf(" %f %f %f \n", result.x, result.y,result.z);
+		m_pCamera->CalculateProjectionMatrix();
+
 	}
 	else if (MouseY > CenterY)
 	{
 		fDeltaMouse = static_cast<float>(MouseY - CenterY);
+		fAngleX -= fDeltaMouse * a_fSpeed;
+
+		fDeltaMouse = static_cast<float>(CenterY - MouseY);
 		fAngleX += fDeltaMouse * a_fSpeed;
+		quaternion yRot = glm::angleAxis(0.1f, right);
+		quaternion targetRot(0, target.x, target.y, target.z);
+		quaternion result = yRot * targetRot * glm::conjugate(yRot);
+		m_pCamera->SetTarget(vector3(result.x, result.y, result.z));
+
+		quaternion upRot(0, up.x, up.y, up.z);
+		quaternion result2 = yRot * upRot * glm::conjugate(yRot);
+		m_pCamera->SetUp(glm::normalize(vector3(result2.x, result2.y, result2.z)));
+		m_pCamera->CalculateProjectionMatrix();
 	}
+	
 	//Change the Yaw and the Pitch of the camera
+	//m_pCamera->ChangeYawAndPitch((fAngleYaw * 1.0f), (fAngleX * 1.0f));
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
 //Keyboard
@@ -385,6 +439,18 @@ void Application::ProcessKeyboard(void)
 
 	if (fMultiplier)
 		fSpeed *= 5.0f;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		m_pCamera->MoveForward(fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+		m_pCamera->MoveForward(-fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		m_pCamera->MoveSideways(-fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		m_pCamera->MoveSideways(fSpeed);
 #pragma endregion
 }
 //Joystick

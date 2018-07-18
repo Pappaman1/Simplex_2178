@@ -1,4 +1,5 @@
 #include "MyCamera.h"
+#include <math.h>
 using namespace Simplex;
 
 //Accessors
@@ -6,7 +7,7 @@ void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3P
 
 void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Target = a_v3Target; }
 
-void Simplex::MyCamera::SetUp(vector3 a_v3Up) { m_v3Above = a_v3Up; }
+void Simplex::MyCamera::SetUp(vector3 a_v3Up) { m_v3Above = m_v3Position + a_v3Up; }
 
 void Simplex::MyCamera::SetPerspective(bool a_bPerspective) { m_bPerspective = a_bPerspective; }
 
@@ -80,6 +81,59 @@ void Simplex::MyCamera::Release(void)
 	//No pointers to deallocate yet
 }
 
+void Simplex::MyCamera::MoveForward(float a_fDistance)
+{
+	vector3 forward = glm::normalize(m_v3Target - m_v3Position);
+	m_v3Position += forward * a_fDistance;
+	m_v3Target += forward * a_fDistance;
+	//m_v3Above = glm::normalize(m_v3Above + forward * a_fDistance);
+	printf(" %f %f %f \n", m_v3Position.x, m_v3Position.y, m_v3Position.z);
+	CalculateProjectionMatrix();
+	CalculateViewMatrix();
+
+	//printf(" %f %f %f \n", m_v3Target.x, m_v3Target.y, m_v3Target.z);
+	//m_v3Forward = glm::normalize(m_v3Target - m_v3Position);
+	//m_v3Upward = glm::normalize(m_v3Top - m_v3Position);
+	//m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
+}
+
+void Simplex::MyCamera::MoveVertical(float a_fDistance)
+{
+	vector3 up = glm::normalize(m_v3Above);
+	m_v3Position += (up * a_fDistance);
+	m_v3Target += (up * a_fDistance);
+	m_v3Above +=  (up * a_fDistance);
+
+	CalculateProjectionMatrix();
+	CalculateViewMatrix();
+	//m_v3Forward = glm::normalize(m_v3Target - m_v3Position);
+	//m_v3Upward = glm::normalize(m_v3Top - m_v3Position);
+	//m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
+}
+
+void Simplex::MyCamera::MoveSideways(float a_fDistance)
+{
+	//printf(" %f %f %f ", m_v3Position.x, m_v3Position.y, m_v3Position.z);
+	vector3 forward = glm::normalize(m_v3Target - m_v3Position);
+	vector3 up = glm::normalize(m_v3Above);
+	vector3 right = glm::normalize(glm::cross(forward, up));
+	m_v3Position += right * a_fDistance;
+	m_v3Target += right * a_fDistance;
+	m_v3Above += right * a_fDistance;
+
+	printf(" %f %f %f ", up.x, up.y, up.z);
+	printf(" %f %f %f ", forward.x, forward.y, forward.z);
+	printf(" %f %f %f \n", right.x, right.y, right.z);
+
+	CalculateProjectionMatrix();
+	CalculateViewMatrix();
+	//printf(" %f %f %f \n", m_v3Target.x, m_v3Target.y, m_v3Target.z);
+	//m_v3Forward = glm::normalize(m_v3Target - m_v3Position);
+	//m_v3Upward = glm::normalize(m_v3Top - m_v3Position);
+	//m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
+}
+
+
 void Simplex::MyCamera::Swap(MyCamera & other)
 {
 	std::swap(m_v3Position, other.m_v3Position);
@@ -127,16 +181,18 @@ void Simplex::MyCamera::ResetCamera(void)
 
 void Simplex::MyCamera::SetPositionTargetAndUp(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward)
 {
+	printf("Set Position!");
 	m_v3Position = a_v3Position;
 	m_v3Target = a_v3Target;
 	m_v3Above = a_v3Position + a_v3Upward;
 	CalculateProjectionMatrix();
+
 }
 
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
 	//Calculate the look at
-	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Above);
+	m_m4View = glm::lookAt(m_v3Position,m_v3Target, glm::normalize(m_v3Above - m_v3Position));
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)
@@ -153,4 +209,66 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 										m_v2Vertical.x, m_v2Vertical.y, //vertical
 										m_v2NearFar.x, m_v2NearFar.y); //near and far
 	}
+}
+
+void Simplex::MyCamera::ChangeYawAndPitch(float yawAngle, float pitchAngle) //changes yaw and pitch in single function
+{
+	//	rotQuat = glm::quat(yawAngle, pitchAngle, 0.0f);
+
+	////these quaternions help avoid gimbal lock
+	//quaternion r = glm::angleAxis(0.f, AXIS_Z);
+	//quaternion p = glm::angleAxis(-pitchAngle, m_v3Target);
+	//quaternion y = glm::angleAxis(yawAngle, m_v3Above);
+	//rotQuat = glm::normalize(r * p * y);
+
+	// Abbreviations for the various angular functions
+	double cy = cos(yawAngle * 0.5);
+	double sy = sin(yawAngle * 0.5);
+	double cr = cos(0 * 0.5);
+	double sr = sin(0 * 0.5);
+	double cp = cos(pitchAngle * 0.5);
+	double sp = sin(pitchAngle * 0.5);
+
+	rotQuat.w = cy * cr * cp + sy * sr * sp;
+	rotQuat.x = cy * sr * cp - sy * cr * sp;
+	rotQuat.y = cy * cr * sp + sy * sr * cp;
+	rotQuat.z = sy * cr * cp - cy * sr * sp;
+
+
+}
+
+quaternion Simplex::MyCamera::getConjugate() //gets opposite direction of quaterion
+{
+	return quaternion(rotQuat.w, -rotQuat.x, -rotQuat.y, -rotQuat.z);
+}
+
+vector3 Simplex::MyCamera::QuatConversion(vector3 vector) // convert quaternion into a vec3
+{
+	//set rotation on angles using quaternions
+	vector3 vn(vector);
+	vector3 normVec = vn;
+	quaternion vecQuat, resQuat;
+	vecQuat.x = normVec.x;
+	vecQuat.y = normVec.y;
+	vecQuat.z = normVec.z;
+	vecQuat.w = 0.0f;
+	resQuat = vecQuat * getConjugate();
+	resQuat = rotQuat * resQuat;
+	return (vector3(resQuat.x, resQuat.y, resQuat.z));
+
+}
+
+vector3 Simplex::MyCamera::GetPosition()
+{
+	return m_v3Position;
+}
+
+vector3 Simplex::MyCamera::GetTarget()
+{
+	return m_v3Target;
+}
+
+vector3 Simplex::MyCamera::GetUp()
+{
+	return m_v3Above - m_v3Position;
 }

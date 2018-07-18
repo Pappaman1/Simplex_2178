@@ -28,6 +28,8 @@ class MyCamera
 
 	matrix4 m_m4View; //View matrix
 	matrix4 m_m4Projection; //Projection Matrix
+	matrix4 rotMatrix;
+	quaternion rotQuat;
 public:
 	/*
 	USAGE: Constructor
@@ -79,6 +81,13 @@ public:
 	ARGUMENTS: ---
 	OUTPUT: ---
 	*/
+
+	void MoveForward(float a_fDistance);
+
+	void MoveVertical(float a_fDistance);
+
+	void MoveSideways(float a_fDistance);
+
 	void Swap(MyCamera& other);
 
 	/*
@@ -211,6 +220,12 @@ public:
 	OUTPUT: ---
 	*/
 	void CalculateProjectionMatrix(void);
+
+	void ChangeYawAndPitch(float yawAngle, float pitchAngle);
+
+	vector3 QuatConversion(vector3 vector);
+
+	quaternion getConjugate();
 };
 
 } //namespace Simplex
