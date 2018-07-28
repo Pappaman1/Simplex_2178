@@ -1,6 +1,7 @@
 #include "MyRigidBody.h"
 using namespace Simplex;
 //Allocation
+
 void MyRigidBody::Init(void)
 {
 	m_pMeshMngr = MeshManager::GetInstance();
@@ -75,6 +76,8 @@ vector3 MyRigidBody::GetCenterGlobal(void){	return vector3(m_m4ToWorld * vector4
 vector3 MyRigidBody::GetMinGlobal(void) { return m_v3MinG; }
 vector3 MyRigidBody::GetMaxGlobal(void) { return m_v3MaxG; }
 vector3 MyRigidBody::GetHalfWidth(void) { return m_v3HalfWidth; }
+vector3 MyRigidBody::GetHalfSize(void) { return m_v3ARBBSize / 2.0 ; }
+
 matrix4 MyRigidBody::GetModelMatrix(void) { return m_m4ToWorld; }
 void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 {
@@ -120,6 +123,7 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 		if (m_v3MaxG.z < v3Corner[i].z) m_v3MaxG.z = v3Corner[i].z;
 		else if (m_v3MinG.z > v3Corner[i].z) m_v3MinG.z = v3Corner[i].z;
 	}
+	
 
 	//we calculate the distance between min and max vectors
 	m_v3ARBBSize = m_v3MaxG - m_v3MinG;
@@ -228,11 +232,13 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 {
 	//check if spheres are colliding as pre-test
 	bool bColliding = (glm::distance(GetCenterGlobal(), a_pOther->GetCenterGlobal()) < m_fRadius + a_pOther->m_fRadius);
+	bColliding = true;
 	
-	//if they are colliding check the SAT
+//if they are colliding check the SAT
 	if (bColliding)
 	{
-		if(SAT(a_pOther) != eSATResults::SAT_NONE)
+		saveSATResults = SAT(a_pOther);
+		if(saveSATResults != eSATResults::SAT_NONE)
 			bColliding = false;// reset to false
 	}
 
@@ -288,5 +294,99 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	*/
 
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	vector4 localCoordinatesX = vector4(AXIS_X, 0);
+	localCoordinatesX = this->GetModelMatrix() * localCoordinatesX;
+
+	vector4 localCoordinatesY = vector4(AXIS_Y, 0);
+	localCoordinatesY = this->GetModelMatrix() * localCoordinatesY;
+
+	vector4 localCoordinatesZ = vector4(AXIS_Z, 0);
+	localCoordinatesZ = this->GetModelMatrix() * localCoordinatesZ;
+
+	vector4 localCoordinatesXO = vector4(AXIS_X, 0);
+	localCoordinatesXO = a_pOther->GetModelMatrix() * localCoordinatesXO;
+
+	vector4 localCoordinatesYO = vector4(AXIS_Y, 0);
+	localCoordinatesYO = a_pOther->GetModelMatrix() * localCoordinatesYO;
+
+	vector4 localCoordinatesZO = vector4(AXIS_Z, 0);
+	localCoordinatesZO = a_pOther->GetModelMatrix() * localCoordinatesZO;
+
+	vector4 localCoordinatesArray1[3] = { localCoordinatesX,localCoordinatesY,localCoordinatesZ };
+	vector4 localCoordinatesArray2[3] = { localCoordinatesXO,localCoordinatesYO,localCoordinatesZO };
+
+
+
+	float getHalfWidthArrayThis[3] = { this->GetHalfWidth().x ,this->GetHalfWidth().y,this->GetHalfWidth().z };
+	float getHalfWidthArrayOther[3] = { a_pOther->GetHalfWidth().x , a_pOther->GetHalfWidth().y, a_pOther->GetHalfWidth().z };
+	//A.X * B.X, A.X * B.Y, A.X * B.Z, A.Y * B.X, A.Y * B.Y, A.Y * B.Z, A.Z * B.X, A.Z * B.Y, and A.Z * B.Z
+	float ra, rb;
+	glm::mat3x3 R, AbsR;
+	// Compute rotation matrix expressing b in a’s coordinate frame
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			R[i][j] = glm::dot(localCoordinatesArray1[i], localCoordinatesArray2[j]);
+
+	// Compute translation vector t
+	vector3 t = a_pOther->GetCenterGlobal() - this->GetCenterGlobal();
+	// Bring translation into a’s coordinate frame
+	t = vector3(glm::dot(t, vector3(localCoordinatesArray1[0])), glm::dot(t, vector3(localCoordinatesArray1[1])), glm::dot(t, vector3(localCoordinatesArray1[2])));
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			AbsR[i][j] = fabs(R[i][j]) + 0.0000001f;
+	// Test axes L = A0, L = A1, L = A2
+	for (int i = 0; i < 3; i++) {
+		ra = getHalfWidthArrayThis[i];
+		rb = getHalfWidthArrayOther[0] * AbsR[i][0] + getHalfWidthArrayOther[1] * AbsR[i][1] + getHalfWidthArrayOther[2] * AbsR[i][2];
+		if (fabs(t[i]) >(ra + rb)) return i+1;
+	}
+	// Test axes L = B0, L = B1, L = B2
+	for (int i = 0; i < 3; i++) {
+		ra = getHalfWidthArrayThis[0] * AbsR[0][i] + getHalfWidthArrayThis[1] * AbsR[1][i] + getHalfWidthArrayThis[2] * AbsR[2][i];
+		rb = getHalfWidthArrayOther[i];
+		if (fabs(t[0] * R[0][i] + t[1] * R[1][i] + t[2] * R[2][i]) >(ra + rb)) return i+4;
+	}
+	// Test axis L = A0 x B0
+	ra = getHalfWidthArrayThis[1] * AbsR[2][0] + getHalfWidthArrayThis[2] * AbsR[1][0];
+	rb = getHalfWidthArrayOther[1] * AbsR[0][2] + getHalfWidthArrayOther[2] * AbsR[0][1];
+	if (fabs(t[2] * R[1][0] - t[1] * R[2][0]) > (ra + rb)) return eSATResults::SAT_AXxBX;
+	// Test axis L = A0 x B1
+	ra = getHalfWidthArrayThis[1] * AbsR[2][1] + getHalfWidthArrayThis[2] * AbsR[1][1];
+	rb = getHalfWidthArrayOther[0] * AbsR[0][2] + getHalfWidthArrayOther[2] * AbsR[0][0];
+	if (fabs(t[2] * R[1][1] - t[1] * R[2][1]) > (ra + rb)) return eSATResults::SAT_AXxBY;
+	// Test axis L = A0 x B2
+	ra = getHalfWidthArrayThis[1] * AbsR[2][2] + getHalfWidthArrayThis[2] * AbsR[1][2];
+	rb = getHalfWidthArrayOther[0] * AbsR[0][1] + getHalfWidthArrayOther[1] * AbsR[0][0];
+	if (fabs(t[2] * R[1][2] - t[1] * R[2][2]) > (ra + rb)) return eSATResults::SAT_AXxBZ;
+	// Test axis L = A1 x B0
+	ra = getHalfWidthArrayThis[0] * AbsR[2][0] + getHalfWidthArrayThis[2] * AbsR[0][0];
+	rb = getHalfWidthArrayOther[1] * AbsR[1][2] + getHalfWidthArrayOther[2] * AbsR[1][1];
+
+	if (fabs(t[0] * R[2][0] - t[2] * R[0][0]) > (ra + rb)) return eSATResults::SAT_AYxBX;
+	// Test axis L = A1 x B1
+	ra = getHalfWidthArrayThis[0] * AbsR[2][1] + getHalfWidthArrayThis[2] * AbsR[0][1];
+	rb = getHalfWidthArrayOther[0] * AbsR[1][2] + getHalfWidthArrayOther[2] * AbsR[1][0];
+	if (fabs(t[0] * R[2][1] - t[2] * R[0][1]) > (ra + rb)) return eSATResults::SAT_AYxBY;
+	// Test axis L = A1 x B2
+	ra = getHalfWidthArrayThis[0] * AbsR[2][2] + getHalfWidthArrayThis[2] * AbsR[0][2];
+	rb = getHalfWidthArrayOther[0] * AbsR[1][1] + getHalfWidthArrayOther[1] * AbsR[1][0];
+	if (fabs(t[0] * R[2][2] - t[2] * R[0][2]) > (ra + rb)) return eSATResults::SAT_AYxBZ;
+	// Test axis L = A2 x B0
+	ra = getHalfWidthArrayThis[0] * AbsR[1][0] + getHalfWidthArrayThis[1] * AbsR[0][0];
+	rb = getHalfWidthArrayOther[1] * AbsR[2][2] + getHalfWidthArrayOther[2] * AbsR[2][1];
+	if (fabs(t[1] * R[0][0] - t[0] * R[1][0]) > (ra + rb)) return eSATResults::SAT_AZxBX;
+	// Test axis L = A2 x B1
+	ra = getHalfWidthArrayThis[0] * AbsR[1][1] + getHalfWidthArrayThis[1] * AbsR[0][1];
+	rb = getHalfWidthArrayOther[0] * AbsR[2][2] + getHalfWidthArrayOther[2] * AbsR[2][0];
+	if (fabs(t[1] * R[0][1] - t[0] * R[1][1]) > (ra + rb)) return eSATResults::SAT_AZxBY;
+	// Test axis L = A2 x B2
+	ra = getHalfWidthArrayThis[0] * AbsR[1][2] + getHalfWidthArrayThis[1] * AbsR[0][2];
+	rb = getHalfWidthArrayOther[0] * AbsR[2][1] + getHalfWidthArrayOther[1] * AbsR[2][0];
+	if (fabs(t[1] * R[0][2] - t[0] * R[1][2]) > (ra + rb)) return eSATResults::SAT_AZxBZ;
+
+	
+
+	//there is no axis test that separates this two objects
+	return 0;
 }

@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Zachary Winnewisser - zmw7710@rit.edu";
 
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUp(
@@ -46,6 +46,141 @@ void Application::Update(void)
 	m_pSteveRB->SetModelMatrix(mSteve);
 	m_pMeshMngr->AddAxisToRenderList(mSteve);
 
+	//create plane
+	vector3 mPlanePos;
+	matrix4 rotMat;
+	matrix4 rotMat2;
+	switch (m_pCreeperRB->saveSATResults)
+	{
+	case eSATResults::SAT_AX:
+	
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, -glm::radians(90.0f), AXIS_Y) * glm::scale(vector3(4.0f,4.0f,4.0f));
+		rotMat2 = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(-90.0f), AXIS_Y) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		//rotMat *= m_pCreeperRB->GetModelMatrix();
+		m_pMeshMngr->AddPlaneToRenderList(rotMat,C_RED,1);
+		m_pMeshMngr->AddPlaneToRenderList(rotMat2, C_RED, 1);
+		break;
+	case eSATResults::SAT_AY:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_X) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		rotMat2 = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(-90.0f), AXIS_X) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		//rotMat *= m_pCreeperRB->GetModelMatrix();
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_RED, 1);
+		m_pMeshMngr->AddPlaneToRenderList(rotMat2, C_RED, 1);
+
+		break;
+	case eSATResults::SAT_AZ:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(0.0f), AXIS_Z) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		
+		//rotMat *= m_pCreeperRB->GetModelMatrix();
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_RED, 1);
+		
+
+		break;
+
+	case eSATResults::SAT_BX:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_Y) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		//rotMat *= m_pSteveRB->GetModelMatrix();
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_BLUE, 1);
+		break;
+	case eSATResults::SAT_BY:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_X) *glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		//rotMat *= m_pSteveRB->GetModelMatrix();
+
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_BLUE, 1);
+		break;
+	case eSATResults::SAT_BZ:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(0.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		//rotMat *= m_pSteveRB->GetModelMatrix();
+
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_BLUE, 1);
+		break;
+
+
+	case eSATResults::SAT_AXxBX:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_Y) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_GREEN, 1);
+		break;
+
+	case eSATResults::SAT_AXxBY:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_GREEN, 1);
+		break;
+
+	case eSATResults::SAT_AXxBZ:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_GREEN, 1);
+		break;
+
+	case eSATResults::SAT_AYxBX:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_YELLOW, 1);
+		break;
+
+	case eSATResults::SAT_AYxBY:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_YELLOW, 1);
+		break;
+
+	case eSATResults::SAT_AYxBZ:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_YELLOW, 1);
+		break;
+
+	case eSATResults::SAT_AZxBX:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_Y) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_ORANGE, 1);
+		break;
+
+	case eSATResults::SAT_AZxBY:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_Z) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_ORANGE, 1);
+		break;
+
+	case eSATResults::SAT_AZxBZ:
+
+		mPlanePos = (m_pCreeperRB->GetCenterGlobal() + m_pSteveRB->GetCenterGlobal()) / 2;
+		rotMat = glm::translate(mPlanePos) * glm::rotate(IDENTITY_M4, glm::radians(90.0f), AXIS_XY) * glm::scale(vector3(4.0f, 4.0f, 4.0f));
+		m_pMeshMngr->AddPlaneToRenderList(rotMat, C_ORANGE, 1);
+		break;
+
+
+
+
+
+
+
+	default: 
+		break;
+	}
+
 	bool bColliding = m_pCreeperRB->IsColliding(m_pSteveRB);
 
 	m_pCreeper->AddToRenderList();
@@ -68,6 +203,8 @@ void Application::Display(void)
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 	
+
+
 	//render list call
 	m_uRenderCallCount = m_pMeshMngr->Render();
 

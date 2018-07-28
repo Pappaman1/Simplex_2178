@@ -38,7 +38,9 @@ class MyRigidBody
 
 	std::set<MyRigidBody*> m_CollidingRBSet; //set of rigid bodies this one is colliding with
 
+	
 public:
+	uint saveSATResults = 0;
 	/*
 	Usage: Constructor
 	Arguments: std::vector<vector3> a_pointList -> list of points to make the Rigid Body for
@@ -224,6 +226,8 @@ public:
 	Arguments: Model to World matrix
 	Output: ---
 	*/
+	vector3 GetHalfSize(void);
+
 	void SetModelMatrix(matrix4 a_m4ModelMatrix);
 #pragma endregion
 	
