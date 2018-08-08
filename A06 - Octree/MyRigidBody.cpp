@@ -295,24 +295,24 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 {
 	//check if spheres are colliding
 	bool bColliding = true;
-	//bColliding = (glm::distance(GetCenterGlobal(), other->GetCenterGlobal()) < m_fRadius + other->m_fRadius);
+	//bColliding = (glm::distance(GetCenterGlobal(), a_pOther->GetCenterGlobal()) < m_fRadius + a_pOther->m_fRadius);
 	//if they are check the Axis Aligned Bounding Box
 	if (bColliding) //they are colliding with bounding sphere
 	{
 		if (this->m_v3MaxG.x < a_pOther->m_v3MinG.x) //this to the right of other
-			bColliding = false;
+			return false;
 		if (this->m_v3MinG.x > a_pOther->m_v3MaxG.x) //this to the left of other
-			bColliding = false;
+			return false;
 
 		if (this->m_v3MaxG.y < a_pOther->m_v3MinG.y) //this below of other
-			bColliding = false;
+			return false;
 		if (this->m_v3MinG.y > a_pOther->m_v3MaxG.y) //this above of other
-			bColliding = false;
+			return false;
 
 		if (this->m_v3MaxG.z < a_pOther->m_v3MinG.z) //this behind of other
-			bColliding = false;
+			return false;
 		if (this->m_v3MinG.z > a_pOther->m_v3MaxG.z) //this in front of other
-			bColliding = false;
+			return false;
 
 		if (bColliding) //they are colliding with bounding box also
 		{
@@ -321,14 +321,14 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 		}
 		else //they are not colliding with bounding box
 		{
-			this->RemoveCollisionWith(a_pOther);
-			a_pOther->RemoveCollisionWith(this);
+			//this->RemoveCollisionWith(a_pOther);
+			//a_pOther->RemoveCollisionWith(this);
 		}
 	}
 	else //they are not colliding with bounding sphere
 	{
-		this->RemoveCollisionWith(a_pOther);
-		a_pOther->RemoveCollisionWith(this);
+		//this->RemoveCollisionWith(a_pOther);
+		//a_pOther->RemoveCollisionWith(this);
 	}
 	return bColliding;
 }

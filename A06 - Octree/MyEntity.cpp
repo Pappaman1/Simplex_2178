@@ -212,23 +212,23 @@ bool Simplex::MyEntity::SharesDimension(MyEntity* const a_pOther)
 	
 	//special case: if there are no dimensions on either MyEntity
 	//then they live in the special global dimension
-	if (0 == m_nDimensionCount)
-	{
-		//if no spatial optimization all cases should fall here as every 
-		//entity is by default, under the special global dimension only
-		if(0 == a_pOther->m_nDimensionCount)
-			return true;
-	}
+	//if (0 == m_nDimensionCount)
+	//{
+	//	//if no spatial optimization all cases should fall here as every 
+	//	//entity is by default, under the special global dimension only
+	//	if(0 == a_pOther->m_nDimensionCount)
+	//		return true;
+	//}
 
 	//for each dimension on both Entities we check if there is a common dimension
-	for (uint i = 0; i < m_nDimensionCount; ++i)
-	{
-		for (uint j = 0; j < a_pOther->m_nDimensionCount; j++)
-		{
-			if (m_DimensionArray[i] == a_pOther->m_DimensionArray[j])
+	//for (uint i = 0; i < m_nDimensionCount; ++i)
+	//{
+	//	for (uint j = 0; j < a_pOther->m_nDimensionCount; j++)
+	//	{
+			if (m_DimensionArray[0] == a_pOther->m_DimensionArray[0])
 				return true; //as soon as we find one we know they share dimensionality
-		}
-	}
+	//	}
+	//}
 
 	//could not find a common dimension
 	return false;
@@ -243,7 +243,6 @@ bool Simplex::MyEntity::IsColliding(MyEntity* const other)
 	//they are not colliding
 	if (!SharesDimension(other))
 		return false;
-
 	return m_pRigidBody->IsColliding(other->GetRigidBody());
 }
 void Simplex::MyEntity::ClearCollisionList(void)

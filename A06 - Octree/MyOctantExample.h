@@ -20,6 +20,7 @@ class MyOctant
 	uint m_uID = 0; //Will store the current ID for this octant
 	uint m_uLevel = 0; //Will store the current level of the octant
 	uint m_uChildren = 0;// Number of children on the octant (either 0 or 8)
+	uint m_uMeshID = -1;
 
 	float m_fSize = 0.0f; //Size of the octant
 
@@ -55,7 +56,7 @@ public:
 	- float a_fSize -> size of each side of the octant volume
 	OUTPUT: class object
 	*/
-	MyOctant(vector3 a_v3Center, float a_fSize);
+	MyOctant(vector3 a_v3Center, float a_fSize, int level);
 	/*
 	USAGE: Copy Constructor
 	ARGUMENTS: class object to copy
